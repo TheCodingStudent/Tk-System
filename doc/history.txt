@@ -1,0 +1,3 @@
+-22/07/22:
+    *   (Armando) Hoy se separo este proyecto del proyecto pylejandria, eran
+        tantas funciones y cosas que valia la pena separarlos. (11:42am)

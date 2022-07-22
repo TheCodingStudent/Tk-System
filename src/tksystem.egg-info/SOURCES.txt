@@ -2,6 +2,9 @@ LICENSE
 README.md
 pyproject.toml
 setup.cfg
+src/tksystem/__init__.py
+src/tksystem/functions.py
+src/tksystem/reloader.py
 src/tksystem.egg-info/PKG-INFO
 src/tksystem.egg-info/SOURCES.txt
 src/tksystem.egg-info/dependency_links.txt
