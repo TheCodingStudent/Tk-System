@@ -1,3 +1,9 @@
 -22/07/22:
     *   (Armando) Hoy se separo este proyecto del proyecto pylejandria, eran
         tantas funciones y cosas que valia la pena separarlos. (11:42am)
+    *   Habia que pulir uno que otro detalle, pero ya esta, incluso probe el
+        hacerlo ejecutable y funciona bastante bien, ahora solo me falta hacer
+        que el hotload no invoque la terminal.
+        -   editar vistas
+        -   checar lo del coloreo
+    *   Pues aun mas cambios, lo subire para ver que procede. (3:29pm)

@@ -1,7 +1,7 @@
-import time, os, sys, subprocess
+import os, sys, subprocess
+
 
 class Reloader(object):
-
     RELOADING_CODE = 3
     def start_process(self):
         """Spawn a new Python interpreter with the same arguments as this one,
@@ -26,15 +26,14 @@ def run_with_reloader(root, *hotkeys):
     reloader = Reloader()
     try:
         if os.environ.get('TKINTER_MAIN') == 'true':
-
             for hotkey in hotkeys:
                 root.bind_all(hotkey, lambda event: reloader.trigger_reload())
-
             root.mainloop()
         else:
             sys.exit(reloader.start_process())
     except KeyboardInterrupt:
         pass
+
 
 if __name__ == "__main__":
     from tkinter import Tk, Label

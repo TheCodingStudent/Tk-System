@@ -3,7 +3,7 @@ from typing import Any
 import pylejandria
 import re
 import tkinter as tk
-import importlib
+
 
 def get_chunk(a: str, b: str, lines: list[str]) -> tuple[list[str], list[str]]:
     """
@@ -313,7 +313,7 @@ def load(
             info1['parent'] = parent
             parent = None
         widget = find_attribute(
-            info1.pop('widget'), (module, tk, tk.ttk)
+            info1.pop('widget'), (module, tk, tk.ttk, pylejandria.gui)
         )
         widget_arguments = widget_args(info1)
         widget = widget(*widget_arguments)

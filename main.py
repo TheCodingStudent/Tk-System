@@ -1,3 +1,4 @@
+import os
 import re
 from pylejandria.gui import TextArea, ask, Window, WindowMenu, style
 import subprocess
@@ -8,11 +9,12 @@ FILENAME = 'program_run'
 
 tags = [
     'Frame', 'Window', 'Combobox', 'Button', 'TextSpan', 'Entry', 'Label',
-    'Tk', 'TextSpan', 'WindowMenu', 'Combobox', 'LabelFrame', 'TextArea'
+    'Tk', 'TextSpan', 'WindowMenu', 'Combobox', 'LabelFrame', 'TextArea',
+    'PhoneEntry'
 ]
 
 tk_syntax = {
-    f"^[ :]*({'|'.join(tags)})$": ('Keyword', (0, 0), {'foreground': '#ff0080'}),
+    f"^[ :\t]*({'|'.join(tags)})$": ('Keyword', (0, 0), {'foreground': '#ff0080'}),
     f": {'|'.join(tags)}": ('Keyword', (0, 0), {'foreground': '#ff0080'}),
     "'.*'": ('String', (0, 0), {'foreground': '#ffff80'}),
     '[0-9]+(\.[0-9]+){0,1}': ('Number', (0, 0), {'foreground': '#cc80ff'}),
@@ -52,7 +54,7 @@ py_syntax = {
 }
 
 
-def highlight(textarea: ..., syntax: dict):
+def highlight(textarea: ..., syntax: dict) -> None:
     lines = textarea.read().split('\n')
     for row, line in enumerate(lines):
         for regex, (name, boundaries, values) in syntax.items():
@@ -63,82 +65,90 @@ def highlight(textarea: ..., syntax: dict):
                 textarea.tag_config(name, **values)
 
 
-def new_files(*e):
+def new_files(*e) -> None:
     tk_area.clear()
     py_area.clear()
 
 
-def open_files(*e):
+def open_files(*e) -> None:
     filenames = ask('openfilenames')
     for filename in filenames:
         with open(filename, 'r') as f:
             if filename.endswith('.tk'):
-                tk_area.write(f.read(), clear=True)
+                tk_area.write(f.read().replace('    ', '\t'), clear=True)
                 highlight(tk_area, tk_syntax)
             if filename.endswith('.py'):
-                py_area.write(f.read(), clear=True)
+                py_area.write(f.read().replace('    ', '\t'), clear=True)
                 highlight(py_area, py_syntax)
             if filename.endswith('.json'):
-                style_area.write(f'STYLE = {f.read()}', clear=True)
+                file = f.read().replace('    ', '\t')
+                style_area.write(f"STYLE = {file}", clear=True)
                 highlight(style_area, py_syntax)
 
 
-def save_files(*e):
+def save_files(*e) -> None:
     global FILENAME
-    if not FILENAME:
-        FILENAME = ask('saveasfilename')
+    if FILENAME == 'program_run':
+        filename = ask('saveasfilename')
+        if not FILENAME: return
+        FILENAME = filename
         FILENAME = FILENAME.split('.')[0]
-    with open(f'{FILENAME}.py', 'w') as f:
-        f.write(py_area.read())
+        with open(f'{FILENAME}.pyw', 'w') as f:
+            f.write(py_area.read())
+    else:
+        with open(f'{FILENAME}.py', 'w') as f:
+            f.write(py_area.read())
     with open(f'{FILENAME}.tk', 'w') as f:
         f.write(tk_area.read())
     with open(f'{FILENAME}.json', 'w') as f:
-        style_dict = json.loads(style_area.read().replace('STYLE = ', ''))
+        style_dict = json.loads(style_area.read().replace('STYLE = ', '').replace('\t', '    ').replace("'", '"'))
         json.dump(style_dict, f, indent=4)
 
 
-def run_thread():
-    subprocess.call(["python", f"./{FILENAME}.py"])
-
-
-def run(*e):
+def run(*e) -> None:
+    print(FILENAME)
     with open(f"{FILENAME}.tk", "w") as tk_file:
         file = tk_area.read()
         for match in re.finditer('[\r\n]{2,}', file):
             file = file.replace(match.group(), '\n')
         if file.endswith('\n'):
             file = file[:-1]
-        tk_file.write(file)
-    with open(f"{FILENAME}.py", "w") as py_file:
-        file = py_area.read()
+        tk_file.write(file.replace('\t', '    '))
+    with open(f"{FILENAME}.pyw", "w") as py_file:
+        file = py_area.read().replace('\t', '    ')
         new_file = 'from tksystem.functions import load\n'
         new_file += 'import sys\n\n'
         new_file += 'sys.dont_write_bytecode = True\n'
         new_file += file
-        new_file += style_area.read()
+        new_file += style_area.read().replace('\t', '    ')
         new_file += "\nif __name__ == '__main__':\n"
         new_file += f"\twindow = load('{FILENAME}.tk', __file__, style_dict=STYLE)\n"
         new_file += '\twindow.mainloop()'
         py_file.write(new_file)
 
-    thread = threading.Thread(target=run_thread)
+    thread = threading.Thread(
+        target=lambda: subprocess.call(["python", f"{FILENAME}.pyw"])
+    )
     thread.start()
+
+
+def close() -> None:
+    try:
+        os.remove('program_run.pyw')
+        os.remove('program_run.tk')
+    except FileNotFoundError:
+        pass
+    window.destroy()
+    exit()
 
 
 menu_dict = {
     'File': {
         'tearoff': False,
         'New': {'accelerator': 'Ctrl+N', 'command': new_files},
-        'Open': {'accelerator': 'Ctrl+O', 'command': open_files}
-    },
-    'Edit': {
-        'tearoff': False,
-        'Cut': {'accelerator': 'Ctrl+X'},
-        'Copy': {'accelerator': 'Ctrl+C'},
-        'Paster': {'accelerator': 'Ctrl+V'},
+        'Open': {'accelerator': 'Ctrl+O', 'command': open_files},
         'separator': {},
-        'Undo': {'accelerator': 'Ctrl+Z'},
-        'Redo': {'accelerator': 'Ctrl+Y'},
+        'Run': {'accelerator': 'Ctrl-R', 'command': run}
     }
 }
 
@@ -153,33 +163,37 @@ style_dict = {
     }
 }
 
+binds = {
+    '<Control-o>': open_files,
+    '<Control-n>': new_files,
+    '<Control-r>': run,
+    '<Control-s>': save_files
+}
+
 window = Window()
 window['bg'] = '#262626'
-window.bind('<Control-o>', open_files)
-window.bind('<Control-n>', new_files)
-window.bind('<Control-r>', run)
-window.bind('<Control-s>', save_files)
+window.minsize(1000, 700)
+window.wm_protocol('WM_DELETE_WINDOW', close)
+for bind, func in binds.items():
+    window.bind(bind, func)
 
 menu = WindowMenu(window, menu_dict)
 
-tk_area = TextArea(window, scrollbar=False, width=80)
-tk_area.pack(side='left', fill='both', expand=True)
+tk_area = TextArea(window, scrollbar=False, width=0)
+tk_area.place(relx=0, rely=0, relwidth=0.4, relheight=1)
 tk_area = style(None, style_dict, widget=tk_area, alias='text_area')
 tk_area.bind('<Key>', lambda e: highlight(tk_area, tk_syntax))
 tk_area.write('Tk')
-tk_area['tabs'] = '32'
 
-py_area = TextArea(window, scrollbar=False, width=80)
-py_area.pack(side='left', fill='both', expand=True)
+py_area = TextArea(window, scrollbar=False, width=0)
+py_area.place(relx=0.4, rely=0, relwidth=0.4, relheight=1)
 py_area = style(None, style_dict, widget=py_area, alias='text_area')
 py_area.bind('<Key>', lambda e: highlight(py_area, py_syntax))
-tk_area['tabs'] = '32'
 
-style_area = TextArea(window, scrollbar=False, width=40)
-style_area.pack(side='left', fill='y')
+style_area = TextArea(window, scrollbar=False, width=0)
+style_area.place(relx=0.8, rely=0, relwidth=0.2, relheight=1)
 style_area = style(None, style_dict, widget=style_area, alias='text_area')
 style_area.write('STYLE = {\n\n}')
 style_area.bind('<Key>', lambda e: highlight(style_area, py_syntax))
-tk_area['tabs'] = '32'
 
 window.mainloop()
