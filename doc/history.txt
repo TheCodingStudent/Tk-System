@@ -7,3 +7,19 @@
         -   editar vistas
         -   checar lo del coloreo
     *   Pues aun mas cambios, lo subire para ver que procede. (3:29pm)
+    *   Ya existe el undo y el redo. (4:28pm)
+
+-25/07/22:
+    *   (Armando) Estos dias he estado trabajando en el interprete de TkSystem,
+        la interfaz actual es un asco, hay errores de marcado y no le faltan
+        el copiar y pegar, tambien seleccionar. Asi que toca hacer lo otra vez.
+        (11:17am)
+    
+-27/07/22:
+    *   (Armando) La version 2 del editor ya esta superando al anterior, estoy
+        agregando el menu de plantillas, donde aparecera los widgets que se
+        pueden utilizar y al usarlo aparecen tambien todas las propiedades que
+        se pueden editar. (3:04pm)
+    *   Ahora ya se pueden abrir archivos y borrar todo. Hare lo del guardado y
+        talvez juegue Minecraft. (4:03pm)
+    *   Agregue el poder abrir carpetas y guardar proyecto. (4:48pm)

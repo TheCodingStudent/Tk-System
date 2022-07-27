@@ -1,8 +1,8 @@
-import os
 from typing import Any
 import pylejandria
 import re
 import tkinter as tk
+from tkinter import ttk
 
 
 def get_chunk(a: str, b: str, lines: list[str]) -> tuple[list[str], list[str]]:
@@ -285,7 +285,7 @@ def assign_parent(widget: Any, info1: dict, info2: dict) -> tk.Widget | None:
 
 def load(
     filename: str, file: str, parent: tk.Widget | None=None,
-    style_dict: dict | None=None
+    style_dict: dict | None={}, filetext: str | None=None
 ) -> tk.Widget:
     """
     Loads a file with extension *.tk and builds all the widgets, the idea is
@@ -296,13 +296,17 @@ def load(
         file: path of the source, to load functions and classes.
         parent: optional parent, in case the loaded widget is not a window.
         style_dict: optional dictionary with style based on alias.
+        filetext: string with the text in case there is no file.
     Returns:
         tk.Widget: the builded widget from the given file.
     """
-    with open(filename, 'r') as f:
-        lines = f.read().split('\n')
-        widget_names = [line for line in lines if ':' not in line]
+    if filename is not None:
+        with open(filename, 'r') as f:
+            lines = f.read().split('\n')
+    else:
+        lines = filetext.split('\n')
 
+    widget_names = [line for line in lines if ':' not in line]
     module = pylejandria.tools.get_module(file) if file is not None else None
     widgets = get_widgets(lines, widget_names)
     window = None
@@ -351,5 +355,10 @@ def load(
 
         if parent := assign_parent(widget, info1, info2):
             info2['parent'] = parent
+
+    if style_config := style_dict.get('style_config'):
+        style = ttk.Style(window)
+        for widget, config in style_config.items():
+            style.configure(widget, **config)
 
     return window
