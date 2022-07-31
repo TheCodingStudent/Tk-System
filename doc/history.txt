@@ -23,3 +23,39 @@
     *   Ahora ya se pueden abrir archivos y borrar todo. Hare lo del guardado y
         talvez juegue Minecraft. (4:03pm)
     *   Agregue el poder abrir carpetas y guardar proyecto. (4:48pm)
+
+-29/07/22:
+    *   (Armando) Estos dias me la tomare mas relax, pero de momento encontre
+        como llamar un subproceso sin invocar la consola. (8:25am)
+    *   Pues ahora hay mas clases con las cuales interactuar asi que las añadi
+        al menu de plantillas, ya despues pondre todas sus configuraciones.
+        (7:20pm)
+
+-30/07/22:
+    *   (Armando) Agregue al modulo gui mejor soporte para el FramelessWindow,
+        he estado haciendo algunos experimentos para lograr una interfaz
+        moderna. (11:50am)
+    *   Habia un error y es que al parecer tkinter tambien tiene un widget
+        Image y habia conflicto con Image de PyLejandria, asi que la nueva
+        jerarquia de importacion es la siguiente:
+            1.  El archivo de python
+            2.  PyLejandria.gui
+            3.  tkinter
+            4.  tkinter.ttk
+    *   Buzz Lightyear bitacora XD, he agregado el parser y creado un nuevo
+        archivo de funciones en espera de que sea mucho mas sencillo usar
+        TkSystem, de momento ya funcionan los String, Number, List y Dict, asi
+        que vamos de gane. Debo trabajar en acceder a los metodos y atributos
+        de los widgets. (4:23pm)
+    *   El parser ya accede a metodos y atributos de manera chingona, Javier
+        me recordo que habia un sistema de ids XD vere si puedo agregar eso de
+        manera rapida. (9:55pm)
+    *   Ahora por fin el codigo es flexible, puede estar totalmente desordenado
+        y seguira simulandose como se debe, el acceso de metodos y todo eso
+        parece funcionar como debe, tambien el sistema de ids esta implementado
+        , al igual que una nueva funcion nueva llamada rgb, su proposito yo
+        creo queda obvio.
+    *   Ya por ultimo actualice los mensajes para que puedan indicar en que
+        linea tuvieron el error, ademas de algunos errores especificos que
+        habian en las nuevas funciones, hoy fue un gran dia para TkSystem.
+        (10:31pm)

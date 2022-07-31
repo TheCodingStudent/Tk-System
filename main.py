@@ -128,21 +128,39 @@ TK_WIDGETS = {
 
 GUI_WIDGETS = {
     'Container': [],
+    'FramelessWindow': [
+        ("bg", "#202020"),
+        ("titlebg", "#282828"),
+        ("text", "Simple UI"),
+        ("fg", "#ffffff"),
+        ("minimizehoverbackground", "#505050"),
+        ("maximizehoverbackground", "#505050"),
+        ("exithoverbackground", "#ff0080"),
+        ("minimizeactivebackground", "#808080"),
+        ("maximizeactivebackground", "#808080"),
+        ("exitactivebackground", "#ff0000"),
+        (".geometry", "500x500+0+0")
+    ],
     'Hierarchy': [],
+    'Image': [
+        ("image", "path")
+    ],
+    'ImageButton': [],
     'PhoneEntry': [],
     'TextSpan': [],
     'WindowMenu': [],
     'Window': [
         ("bg", "#3cfac8"),
         (".bind", ("<Control-R>", "function")),
-        (".geometry", "500x500+0+0")
+        (".geometry", "500x500+0+0"),
+        (".title", "Simple UI")
     ],
 }
 
 def new_files(*e):
     global SAVE_NAME
     SAVE_NAME = None
-    tk_area.text.write('Window\n\t', clear=True)
+    # tk_area.text.write('Window\n\t', clear=True)
     style_area.text.write('STYLE = {\n\n}', clear=True)
     window.title(f'TkSystem 2.0.0')
     highlight()
@@ -225,7 +243,10 @@ MENU = {
         'Radiobutton': {'command': lambda: load_template('Radiobutton')},
         'separator': {},
         'Container': {'command': lambda: load_template('Container')},
+        'FramelessWindow': {'command': lambda: load_template('FramelessWindow')},
         'Hierarchy': {'command': lambda: load_template('Hierarchy')},
+        'Image': {'command': lambda: load_template('Image')},
+        'ImageButton': {'command': lambda: load_template('ImageButton')},
         'PhoneEntry': {'command': lambda: load_template('PhoneEntry')},
         'TextSpan': {'command': lambda: load_template('TextSpan')},
         'WindowMenu': {'command': lambda: load_template('WindowMenu')},
@@ -238,7 +259,7 @@ SYNTAX = {
     'tk_area': {
         '(\'|")#[0-9a-f]{6}(\'|")': ('Color', (1, 1), {}),
         '^[\t]*([A-Z][a-z]+)+': ('Keyword', (0, 0), {'foreground': '#ff0080'}),
-        '^[\t]*(\.){0,1}[a-z]+:': (
+        '^[\t]*(\.){0,1}[a-z_]+:': (
             'Attribute', (0, 1), {'foreground': '#00ffff'}
         ),
         '(\'|")(?!#).+(\'|")': ('String', (0, 0), {'foreground': '#ffff80'}),
@@ -397,7 +418,9 @@ def start_thread() -> None:
     Runs a subprocess to run the simulation of the UI. At the end removes the
     temporary files.
     """
-    subprocess.call(["python", f"{FILENAME}.pyw"])
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    subprocess.Popen(['python'] + [f"{FILENAME}.pyw"], startupinfo=startupinfo).wait()
     os.remove(f'{FILENAME}.pyw')
     os.remove(f'{FILENAME}.tk')
 
@@ -413,14 +436,14 @@ def run(e: tk.Event | None) -> None:
 
     ##### Write the Python file #####
     with open(f'{FILENAME}.pyw', 'w') as f:
-        f.write('from tksystem.functions import load\n')
+        f.write('from src.tksystem.functions import load\n')
         f.write('import sys\n\n')
         f.write('sys.dont_write_bytecode = True\n\n')
         f.write(py_area.text.read().strip())
         f.write('\n\nif __name__ == "__main__":\n')
         f.write(f'\twindow = load("{FILENAME}.tk", __file__)\n')
         f.write('\twindow.mainloop()')
-
+    highlight()
     ##### Run a new thread #####
     thread = threading.Thread(target=start_thread)
     thread.start()
