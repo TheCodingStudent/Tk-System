@@ -59,3 +59,20 @@
         linea tuvieron el error, ademas de algunos errores especificos que
         habian en las nuevas funciones, hoy fue un gran dia para TkSystem.
         (10:31pm)
+
+-31/07/22:
+    *   (Armando) Estoy apunto de quedarme dormido, pero tengo que esperar a
+        Emiliano para darle un recipiente, mientras me pondre a cambiar el
+        sistema de plantillas, la idea es que esten en un archivo txt y de esta
+        manera personalizarlo de manera mas comoda. (10:41am)
+    
+    *   El sistema de plantillas ya fue actualizado y funciona de manera
+        fenomenal, Emiliano no ha venido y creo que me voy a dormir. (12:13pm)
+    
+    *   Ya llegaron de Fashion Mall y trajeron Kentucky, acabo de terminar el
+        sistema de plantillas, al menos la parte de cargarlas en la interfaz,
+        luego me encargo de el editor de plantillas. (2:07pm)
+
+-02/08/22:
+    *   (Armando) Buzz Lightyear bitacora, el dia de hoy la clase Plot ha
+        demostrado poderse integrar a TkSystem. (10:53am)

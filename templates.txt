@@ -1,0 +1,8 @@
+FramelessWindow
+    text: 'Simple UI'
+    titlebg: rgb(40, 40, 40)
+    bg: rgb(32, 32, 32)
+    fg: '#ffffff'
+
+Window
+    .title: 'Simple UI'

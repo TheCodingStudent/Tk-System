@@ -4,6 +4,7 @@ import os
 from pylejandria.gui import Window, WindowMenu, TextArea, Container, ask
 import re
 from tksystem.reloader import run_with_reloader
+from tksystem.functions import parse_file, clean
 import subprocess
 import threading
 import tkinter as tk
@@ -31,136 +32,28 @@ class TextFrame(tk.Frame):
         self.text['linefg'] = '#808080'
 
 
-def load_template(widget: TextFrame) -> None:
-    ##### Get current text from the current frame of the container #####
-    textarea = container.current_frame.text
-
-    ##### Get all text properties #####
-    index = textarea.text.index('insert')
+def load_template(widget: str) -> None:
+    index = tk_area.text.text.index('insert')
     row, tabs = map(lambda x: int(x), index.split('.'))
-    attributes = (TK_WIDGETS | GUI_WIDGETS)[widget]
-    end_row = row + len(attributes) + 1
-    textarea.write(f'{widget}\n', insert='insert')
-    indent = "\t"*(tabs+1)
-
-    ##### Write all the widget properties into the frame #####
-    for attribute, value in attributes:
-        textarea.write(
-            f'{indent}{attribute}: {value!a}\n', insert='insert'
-        )
-
-    ##### add a new line to focus on #####
-    textarea.write(indent, insert=f'{end_row}.{tabs}')
-    textarea.text.mark_set('insert', f'{end_row}.{tabs+1}')
-
-    ##### Highlight the syntax #####
+    with open(f'templates.txt', 'r') as f:
+        clean_text = clean(f.read())
+        widgets = parse_file(clean_text)
+        for widget_dict in widgets:
+            if widget_dict['widget'] == widget:
+                break 
+        
+        for key, value in widget_dict.items():
+            if key in ('indent', ):
+                continue
+            elif key == 'widget':
+                tk_area.text.write(f'{value}\n')
+            else:
+                tk_area.text.write('\t'*tabs + f'\t{key}: {value}\n')
+        tk_area.text.write('\t'*(tabs+1))
     highlight()
 
-##### Name of the testing file #####
-FILENAME = 'New_project'
-SAVE_NAME = None
-
-##### All usable widget and their properties #####
-TK_WIDGETS = {
-    'Button': [
-        ('text', 'Button'),
-        ('activebackground', '#0080ff'),
-        ('activeforeground', '#ffffff'),
-        ('bg', '#004080'),
-        ('fg', '#ffffff'),
-        ('width', 20),
-        ('height', 5),
-        ('justify', 'center'),
-        ('state', 'normal')
-    ],
-    'Canvas': [
-        ('bg', '#0080ff'),
-        ('cursor', 'arrow'),
-        ('width', 200),
-        ('height', 200),
-        ('execute', 'self.create_oval(0, 0, 200, 200)')
-    ],
-    'Checkbutton': [
-        ('text', 'Checkbutton\nOption 1\nOption 2'),
-        ('activebackground', '#0080ff'),
-        ('activeforeground', '#ffffff'),
-        ('bg', '#004080'),
-        ('fg', '#808080'),
-        ('command', 'Function'),
-        ('cursor', 'arrow')
-    ],
-    'Entry': [
-        ('bg', '#004080'),
-        ('fg', '#808080'),
-        ('command', 'Function'),
-        ('cursor', 'arrow'),
-        ('font', 'Arial 12 bold'),
-        ('selectbackground', '#0080ff'),
-        ('selectforeground', '#ffffff'),
-        ('show', '*'),
-        ('state', 'normal'),
-        ('width', 20)
-    ],
-    'Frame': [
-        ('bg', '#0080ff'),
-        ('cursor', 'dot'),
-        ('width', 200),
-        ('height', 200)
-    ],
-    'Label': [
-        ('text', 'Label'),
-        ('anchor', 'center'),
-        ('bg', '#0080ff'),
-        ('fg', '#ffffff'),
-        ('cursor', 'dot'),
-        ('font', 'Arial 12 bold'),
-        ('width', 20),
-        ('height', 5),
-        ('justify', 'center')
-    ],
-    'Listbox': [
-        ('bg', '#0080ff')
-    ],
-    'Menubutton': [],
-    'Message': [],
-    'Radiobutton': [],
-}
-
-GUI_WIDGETS = {
-    'Container': [],
-    'FramelessWindow': [
-        ("bg", "#202020"),
-        ("titlebg", "#282828"),
-        ("text", "Simple UI"),
-        ("fg", "#ffffff"),
-        ("minimizehoverbackground", "#505050"),
-        ("maximizehoverbackground", "#505050"),
-        ("exithoverbackground", "#ff0080"),
-        ("minimizeactivebackground", "#808080"),
-        ("maximizeactivebackground", "#808080"),
-        ("exitactivebackground", "#ff0000"),
-        (".geometry", "500x500+0+0")
-    ],
-    'Hierarchy': [],
-    'Image': [
-        ("image", "path")
-    ],
-    'ImageButton': [],
-    'PhoneEntry': [],
-    'TextSpan': [],
-    'WindowMenu': [],
-    'Window': [
-        ("bg", "#3cfac8"),
-        (".bind", ("<Control-R>", "function")),
-        (".geometry", "500x500+0+0"),
-        (".title", "Simple UI")
-    ],
-}
 
 def new_files(*e):
-    global SAVE_NAME
-    SAVE_NAME = None
-    # tk_area.text.write('Window\n\t', clear=True)
     style_area.text.write('STYLE = {\n\n}', clear=True)
     window.title(f'TkSystem 2.0.0')
     highlight()
@@ -182,28 +75,16 @@ def open_files(*e):
     highlight()
 
 
-def save_files(*e, name=SAVE_NAME) -> None:
-    global SAVE_NAME
-    if SAVE_NAME is None:
-        new_name = ask('directory')
-        if not new_name: return
-        if name == SAVE_NAME: name = new_name
-    SAVE_NAME = name
-    os.mkdir(f'{name}/TkSystem')
-    with open(f'{name}/TkSystem/project.tk', 'w') as f:
+def save_files(*e, name='c:/users/angel/desktop/compress') -> None:
+    with open(f'{name}/project.tk', 'w') as f:
         f.write(tk_area.text.read().strip())
-    with open(f'{name}/TkSystem/project.py', 'w') as f:
+    with open(f'{name}/project.py', 'w') as f:
         f.write(py_area.text.read().strip())
-    with open(f'{name}/TkSystem/project.json', 'w') as f:
+    with open(f'{name}/project.json', 'w') as f:
         style_dict = json.loads(style_area.text.read().replace('STYLE = ', ''))
         json.dump(style_dict, f, indent=4)
     window.title(f'TkSystem 2.0.0 {name}/TkSystem')
 
-
-def saveas_files(*e) -> None:
-    new_name = ask('directory')
-    if not new_name: return
-    save_files(new_name)
 
 ##### Window menu #####
 MENU = {
@@ -228,31 +109,22 @@ MENU = {
             'accelerator': 'Ctrl+3',
             'command': lambda: load_frame('style_area')
         },
+        'Add template': {
+            'accelerator': 'Ctrl+4',
+            'command': lambda: load_frame('template_area')
+        }
     },
     'Templates': {
-        'tearoff': False,
-        'Button': {'command': lambda: load_template('Button')},
-        'Canvas': {'command': lambda: load_template('Canvas')},
-        'Checkbutton': {'command': lambda: load_template('Checkbutton')},
-        'Entry': {'command': lambda: load_template('Entry')},
-        'Frame': {'command': lambda: load_template('Frame')},
-        'Label': {'command': lambda: load_template('Label')},
-        'Listbox': {'command': lambda: load_template('Listbox')},
-        'Menubutton': {'command': lambda: load_template('Menubutton')},
-        'Message': {'command': lambda: load_template('Message')},
-        'Radiobutton': {'command': lambda: load_template('Radiobutton')},
-        'separator': {},
-        'Container': {'command': lambda: load_template('Container')},
-        'FramelessWindow': {'command': lambda: load_template('FramelessWindow')},
-        'Hierarchy': {'command': lambda: load_template('Hierarchy')},
-        'Image': {'command': lambda: load_template('Image')},
-        'ImageButton': {'command': lambda: load_template('ImageButton')},
-        'PhoneEntry': {'command': lambda: load_template('PhoneEntry')},
-        'TextSpan': {'command': lambda: load_template('TextSpan')},
-        'WindowMenu': {'command': lambda: load_template('WindowMenu')},
-        'Window': {'command': lambda: load_template('Window')}
+        'tearoff': False
     }
 }
+
+with open('templates.txt', 'r') as f:
+    clean_text = clean(f.read())
+    widgets = parse_file(clean_text)
+    for widget in widgets:
+        name = widget['widget']
+        MENU['Templates'][name] = {'command': eval(f'lambda: load_template("{name}")')}
 
 ##### Tk and Python files syntax with regex #####
 SYNTAX = {
@@ -310,33 +182,12 @@ SYNTAX = {
         ),
         ' [0-9]+(\.[0-9]+){0,1}$': (
             'Numbers4', (0, 0), {'foreground': '#cc00cc'}
-        ),
-    },
-    'style_area': {
-        '(import|from|global|if|elif|with|for) ': (
-            'Keyword', (0, 0), {'foreground': '#ff0080'}
-        ),
-        '(|while|match|in|pass|try|except|not|is|return)': (
-            'Keyword', (0, 0), {'foreground': '#ff0080'}
-        ),
-        'else:': ('Else', (0, 1), {'foreground': '#ff0080'}),
-        "('|\").*('|\")": ('String', (0, 0), {'foreground': '#ffff80'}),
-        '^[\t]*[A-Z_]+ =': ('Global1', (0, 2), {'foreground': '#cc00cc'}),
-        'global [A-Z_]+': ('Global2', (7, 0), {'foreground': '#cc00cc'}),
-        " f'[a-zA-Z\{]": ('Fstring', (0, 1), {'foreground': '#00ffff'}),
-        '^def ': ('Cyan', (0, 1), {'foreground': '#00ffff'}),
-        '(open|enumerate|zip)\(': (
-            'Builtin', (0, 1), {'foreground': '#00ffff'}
-        ),
-        '^def [a-zA-Z_]+\(': ('Function', (4, 1), {'foreground': '#00ff00'}),
-        '\.[a-zA-Z_]+\(': ('Method', (1, 1), {'foreground': '#00ffff'}),
-        '\+|\*|\-|/|\(|\)|\{|\}|\[|\]|=|>|<': (
-            'Operator', (0, 0), {'foreground': '#ff0080'}
-        ),
-        'None|True|False': ('Purple', (0, 0), {'foreground': '#cc00cc'}),
-        '[0-9]+(\.[0-9]+){0, 1}': ('Number', (0, 0), {'foreground': '#cc00cc'})
+        )
     }
 }
+
+SYNTAX['style_area'] = SYNTAX['py_area']
+SYNTAX['template_area'] = SYNTAX['tk_area']
 
 
 def get_background(color: str) -> str:
@@ -420,9 +271,9 @@ def start_thread() -> None:
     """
     startupinfo = subprocess.STARTUPINFO()
     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-    subprocess.Popen(['python'] + [f"{FILENAME}.pyw"], startupinfo=startupinfo).wait()
-    os.remove(f'{FILENAME}.pyw')
-    os.remove(f'{FILENAME}.tk')
+    subprocess.Popen(['python'] + [f"program_main.pyw"], startupinfo=startupinfo).wait()
+    os.remove(f'program_main.pyw')
+    os.remove(f'program_main.tk')
 
 
 def run(e: tk.Event | None) -> None:
@@ -431,18 +282,19 @@ def run(e: tk.Event | None) -> None:
     threading to run it.
     """
     ##### Write the Tk file #####
-    with open(f'{FILENAME}.tk', 'w') as f:
+    with open(f'program_main.tk', 'w') as f:
         f.write(tk_area.text.read().strip())
 
     ##### Write the Python file #####
-    with open(f'{FILENAME}.pyw', 'w') as f:
-        f.write('from src.tksystem.functions import load\n')
+    with open(f'program_main.pyw', 'w') as f:
+        f.write('from src.tksystem.functions2 import load\n')
         f.write('import sys\n\n')
         f.write('sys.dont_write_bytecode = True\n\n')
         f.write(py_area.text.read().strip())
         f.write('\n\nif __name__ == "__main__":\n')
-        f.write(f'\twindow = load("{FILENAME}.tk", __file__)\n')
-        f.write('\twindow.mainloop()')
+        f.write(f'\twindow, error = load("program_main.tk", __file__)\n')
+        f.write(f'\tif error: print(error)\n')
+        f.write('\telse: window.mainloop()')
     highlight()
     ##### Run a new thread #####
     thread = threading.Thread(target=start_thread)
@@ -453,13 +305,15 @@ if __name__ == '__main__':
     window = Window(title='TkSystem 2.0.0')
     window['bg'] = '#262626'
     window.minsize(1000, 700)
-    window.geometry(f'1000x700+980+170')
+    window.geometry(f'1000x700+900+170')
     window.bind('<Control-r>', run)
     window.bind('<Control-o>', open_files)
     window.bind('<Control-n>', new_files)
+    window.bind('<Control-s>', save_files)
     window.bind('<Control-Key-1>', lambda e: load_frame('tk_area'))
     window.bind('<Control-Key-2>', lambda e: load_frame('py_area'))
     window.bind('<Control-Key-3>', lambda e: load_frame('style_area'))
+    window.bind('<Control-Key-4>', lambda e: load_frame('template_area'))
     for letter in ['<Return>', '<space>']:
         window.bind(letter, highlight)
 
@@ -474,6 +328,8 @@ if __name__ == '__main__':
     container.add_frame(py_area, 'py_area')
     style_area = TextFrame(container, 'JSON File')
     container.add_frame(style_area, 'style_area')
+    template_area = TextFrame(container, 'Templates')
+    container.add_frame(template_area, 'template_area')
     container.show_frame('tk_area')
     new_files()
     highlight()

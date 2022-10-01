@@ -15,6 +15,7 @@ def parse_file(text):
     start_index = 0
     widget_properties = []
     key_points = [line for line in text if ':' not in line] + [None]
+    print(f'{key_points=}')
     for point_a, point_b in pylejandria.tools.pair(key_points, 2):
         widget_properties.append({})
         index_a = text.index(point_a, start_index)
@@ -23,6 +24,7 @@ def parse_file(text):
         widget_properties[-1]['indent'] = text[index_a].count('\t')
         for index in range(index_a+1, index_b):
             line = text[index].strip()
+            print(index, line)
             key, value = line.split(':', maxsplit=1)
             widget_properties[-1][key] = value
         start_index = index_b
@@ -67,6 +69,8 @@ def make_error(error, line):
 
 def load(tk_filename, file):
     module = pylejandria.tools.get_module(file) if file is not None else None
+    module_dict = {key:getattr(module, key) for key in dir(module)}
+
     with open(tk_filename, 'r') as f:
         tk_text = f.read()
     
@@ -87,13 +91,14 @@ def load(tk_filename, file):
 
         id_widgets = {}
 
-        place_widget(widget, widget_a)
-
         for key, str_value in widget_a.items():
-            value, error = run('<TkSystem>', str_value, {'self': widget} | id_widgets)
+            value, error = run('<TkSystem>', str_value, {'self': widget} | id_widgets | module_dict)
             if error: return None, make_error(error, line_count)
             value = value.to_python()
             if key == 'id': id_widgets[value] = widget
+            elif key == 'execute':
+                function, args, kwargs = value
+                function(*args, **kwargs)
             elif key.startswith('.'):
                 method = getattr(widget, key[1:])
                 if isinstance(value, list): method(*value)
